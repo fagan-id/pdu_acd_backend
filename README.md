@@ -31,15 +31,14 @@ Backend API for **PDU Automated Cutting Description**.
 2. **Install dependencies**
     ``` npm install ```
 3. **Configure environment variables**
-    Create a .env file in the root folder with the following variables:
-    ``` PORT=5000 ```
-    ``` NODE_ENV=development ```
-    ``` DATABASE_URL="postgresql://username:password@host:port/dbname?sslmode=require" ```
-    ``` DIRECT_URL="postgresql://username:password@host:port/dbname?sslmode=require" ```
-    ``` JWT_SECRET=your_jwt_secret ```
-4. **Set up Prisma & migrate database**
-    ``` npx prisma migrate dev ```
-    ```npx prisma generate ```
+    Create a .env file in the root folder with the following variables:\\
+    ``` PORT=5000 ```\\
+    ``` DATABASE_URL="postgresql://username:password@host:port/dbname?sslmode=require" ```\\
+    ``` DIRECT_URL="postgresql://username:password@host:port/dbname?sslmode=require" ```\\
+    ``` JWT_SECRET=your_jwt_secret ```\\
+4. **Set up Prisma & migrate database**\\
+    ``` npx prisma migrate dev ```\\
+    ```npx prisma generate ```\\
 
 ## 🏃  Usage
 Start the server:
@@ -56,6 +55,6 @@ You can then access the API endpoints using tools like Postman or cURL.
 
 - Wells: ```/api/wells```
     - Retrieve well data
-    
+
 - Analysis Result: ```/api/analysis```
     - Fetch analysis results, optionally filtered by well
