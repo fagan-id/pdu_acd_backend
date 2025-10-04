@@ -2,6 +2,9 @@
 
 Backend API for **PDU Automated Cutting Description**.
 
+- **Deployed At** : https://pdu-acd-backend.vercel.app/
+- **Postman**  : 
+[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/39802261-1fdcba60-ed08-4943-b29e-5e8f800a0e74?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D39802261-1fdcba60-ed08-4943-b29e-5e8f800a0e74%26entityType%3Dcollection%26workspaceId%3D6b8b3fde-0902-4cdb-b90a-3bb8039f8a70)
 ---
 
 ## 🛠 Tech Stack
