@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authRoutes from "./routes/authRoutes.js";
 import analysisRoutes from "./routes/analysisRoutes.js"
 import wellRoutes from "./routes/wellRoutes.js"
+import path from "path"
 
 dotenv.config();
 
@@ -26,6 +27,8 @@ BigInt.prototype.toJSON = function () {
 app.use("/auth",authRoutes);
 app.use("/analysis", analysisRoutes);
 app.use("/well",wellRoutes);
+console.log(path.join(process.cwd(), "public"))
+app.use("/public", express.static(path.join(process.cwd(), "public")));
 
 app.get('/', (req, res) => {  
   res.json({ message: 'Automated Cutting Description API' });
