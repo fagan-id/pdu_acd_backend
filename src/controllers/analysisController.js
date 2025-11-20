@@ -7,6 +7,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL;  // ini URL model nya
 const OVERLAY_DIR = path.join(process.cwd(), "public", "analysis"); // ini dir untuk simpan gambar overlay
+const ORIGINAL_DIR = path.join(process.cwd(), "public", "original"); // ini dir untuk simpan gambar overlay
 
 
 // GET (Get All Analysis Result)
@@ -68,7 +69,8 @@ export const createAnalysis = async (req, res) => {
   try {
     const { well_id, vertical_depth } = req.body;
 
-    if (!req.file) return res.status(400).json({ message: "Image File is required" });
+    if (!req.file)
+      return res.status(400).json({ message: "Image File is required" });
 
     const well = await prisma.well.findUnique({
       where: { id: BigInt(well_id) },
@@ -76,11 +78,29 @@ export const createAnalysis = async (req, res) => {
 
     if (!well) return res.status(404).json({ error: "Well not found" });
 
-    // =======  MENGIRIMKAN FILE GAMBAR KE FAST API
+    // ============================
+    // 1. SAVE ORIGINAL IMAGE
+    // ============================
+
+    if (!fs.existsSync(ORIGINAL_DIR)) {
+      fs.mkdirSync(ORIGINAL_DIR, { recursive: true });
+    }
+
+    const originalName = `original_${well_id}_${Date.now()}.jpg`;
+    const originalPath = path.join(ORIGINAL_DIR, originalName);
+
+    fs.writeFileSync(originalPath, req.file.buffer);
+
+    const originalUrl = `/original/${originalName}`;
+
+    // ============================
+    // 2. SEND FILE TO /predict (FAST API)
+    // ============================
+
     const formPredict = new FormData();
     formPredict.append("file", req.file.buffer, {
       filename: req.file.originalname,
-      contentType : req.file.mimetype,
+      contentType: req.file.mimetype,
     });
 
     const predictRes = await axios.post(
@@ -91,13 +111,13 @@ export const createAnalysis = async (req, res) => {
 
     const ai = predictRes.data;
 
-    // ===== MENDAPATKAN PERSENTASE DARI BOUNDING BOX (LABELED BOX)
     const summary = ai.summary || {};
-
     const silt_pct = summary.siltstone_percentage ?? 0;
     const sand_pct = summary.sandstone_percentage ?? 0;
 
-    // ============== MENDAPATKAN OVERLAY IMAGE
+    // ============================
+    // 3. GENERATE OVERLAY IMAGE
+    // ============================
 
     const formOverlay = new FormData();
     formOverlay.append("file", req.file.buffer, {
@@ -114,40 +134,50 @@ export const createAnalysis = async (req, res) => {
       }
     );
 
-    // ============= MENYIMPAN OVERLAY KE LOCAL FOLDER
+    // ============================
+    // 4. SAVE OVERLAY IMAGE
+    // ============================
+
     if (!fs.existsSync(OVERLAY_DIR)) {
       fs.mkdirSync(OVERLAY_DIR, { recursive: true });
     }
 
-    const fileName = `overlay_${well_id}_${Date.now()}.jpg`;
-    const filePath = path.join(OVERLAY_DIR, fileName);
+    const overlayName = `overlay_${well_id}_${Date.now()}.jpg`;
+    const overlayPath = path.join(OVERLAY_DIR, overlayName);
 
-    fs.writeFileSync(filePath, Buffer.from(overlayRes.data)); // ini untuk write file ke path
+    fs.writeFileSync(overlayPath, Buffer.from(overlayRes.data));
 
-    const imageUrl = `/analysis/${fileName}`;
+    const overlayUrl = `/analysis/${overlayName}`;
 
-    // ============ SIMPAN KE DATABASE
+    // ============================
+    // 5. SAVE TO DATABASE
+    // ============================
+
     const created = await prisma.analysisResult.create({
       data: {
         well_id: BigInt(well_id),
         vertical_depth: parseFloat(vertical_depth),
         siltstone_prcnt: silt_pct,
         sandstone_prcnt: sand_pct,
-        image: imageUrl,
+        image: overlayUrl,
+        original_image: originalUrl, // <-- PENTING
       },
     });
 
     return res.status(201).json({
-      message : "Analysis Created Using AI",
-      data : created,
-      raw_ai : ai
-    })
+      message: "Analysis Created Using AI",
+      data: created,
+      raw_ai: ai,
+      original_image: originalUrl,
+      overlay_image: overlayUrl,
+    });
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({error : err.message})
+    return res.status(500).json({ error: err.message });
   }
 };
+
 
 // PUT (Update Analysis Result)
 export const updateAnalysis = async (req, res) => {

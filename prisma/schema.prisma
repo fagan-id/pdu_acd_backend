@@ -16,6 +16,7 @@ model AnalysisResult {
   siltstone_prcnt Float?
   sandstone_prcnt  Float?
   image           String?  @db.VarChar
+  original_image           String?  @db.VarChar
   Well           Well    @relation(fields: [well_id], references: [id], onDelete: Cascade)
 
   @@index([well_id])
